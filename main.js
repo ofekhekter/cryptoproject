@@ -40,6 +40,7 @@ let imageCoins = [];
                 error: err => alert(err.statusText),
                 });
             $("#mainContainer").show();
+            hidePopup()
         })
     });
 
@@ -138,8 +139,10 @@ let imageCoins = [];
             localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
         }
         if(!coinExsist2) {
-            ReportsCoinsBackup.push(coin);
-            localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
+            if(ReportsCoinsBackup.length <= 5){
+                ReportsCoinsBackup.push(coin);
+                localStorage.setItem("ReportsCoinsBackup", JSON.stringify(ReportsCoinsBackup));
+            }
         }
         localStorage.setItem("ReportsCoinsBackup", JSON.stringify(ReportsCoinsBackup));
         $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
