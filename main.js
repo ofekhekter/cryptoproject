@@ -1,5 +1,4 @@
 let ReportsCoins = [];
-let ReportsCoinsBackup = [];
 let imageCoins = [];
 
     $.getJSON('./api-images.json', (data) => {
@@ -62,15 +61,6 @@ let imageCoins = [];
         }
     }
 
-    const getReportsCoinsBackupFromLocal = () => {
-        const storageArray = localStorage.getItem("ReportsCoinsBackup");
-        if (storageArray) {
-            return JSON.parse(storageArray);
-        } else {
-            return [];
-        }
-    }
-
     const checkSwitchStatus = (id) => {
         const checkbox = $(`#${id}`);
         const isChecked = checkbox.prop('checked');
@@ -121,30 +111,17 @@ let imageCoins = [];
 
     const setOneCoinToLocal = (coin) => {
         ReportsCoins = getReportsCoinsFromLocal();
-        ReportsCoinsBackup = getReportsCoinsBackupFromLocal();
         let coinExsist = false;
-        let coinExsist2 = false;
         for (const report of ReportsCoins) {
             if(report.name === coin.name) {
                 coinExsist = true;
             }
         }
-        for (const report of ReportsCoinsBackup) {
-            if(report.name === coin.name) {
-                coinExsist2 = true;
-            }
-        }
+      
         if(!coinExsist) {
             ReportsCoins.push(coin);
             localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
         }
-        if(!coinExsist2) {
-            if(ReportsCoinsBackup.length <= 5){
-                ReportsCoinsBackup.push(coin);
-                localStorage.setItem("ReportsCoinsBackup", JSON.stringify(ReportsCoinsBackup));
-            }
-        }
-        localStorage.setItem("ReportsCoinsBackup", JSON.stringify(ReportsCoinsBackup));
         $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
         if(ReportsCoins.length > 5){
             // alert("You have max reports Attempts! Please Choose 5 Reports")
@@ -163,7 +140,7 @@ let imageCoins = [];
 
     const displayPopUpSelectCard = () => {
         const coins = getAllCoinsFromLocal();
-        clearAllSelectedCoins(coins)
+        // clearAllSelectedCoins(coins)
         for (let i = 0; i < coins.length; i++) {
             for (let j = 0; j < imageCoins.length; j++) {
                 if(coins[i].name === imageCoins[j].name) {
@@ -172,33 +149,19 @@ let imageCoins = [];
             }
         }
 
-        ReportsCoinsBackup = getReportsCoinsBackupFromLocal();
+        ReportsCoins = getReportsCoinsFromLocal();
         let content = "";
-        for (let i = 0; i < ReportsCoinsBackup.length; i++) {
-        card = ` <div class='cardContainer'>
-                    <div class='imgContainer'>
-                    <h5>${ReportsCoinsBackup[i].symbol}</h5>
-                    <h5>${ReportsCoinsBackup[i].name}</h5>
-                    <img class='imgCoin' src=${(coins[i].image) ? coins[i].image : "https://www.shutterstock.com/image-vector/gold-coin-dollar-sign-eps8-600w-225394369.jpg"} alt="No image" />  
-                    </div>
-                    <div class='content'><div>
-                    <p class='title'>Last Price: <span class="value">${(ReportsCoinsBackup[i].quotes.USD.price).toFixed(2)}$</span></p>
-                    </div>
-                    <div>
-                    <p class='title'>Change 24h: <span class="value">${(ReportsCoinsBackup[i].quotes.USD.volume_24h_change_24h).toFixed(2)}%</span></p>
-                    </div>
-                    <div>
-                    <p class='title'>Market Cap: <span class="value">${fnum(ReportsCoinsBackup[i].quotes.USD.market_cap)}</span></p>
-                    </div>
-                    <div class="btn-group-toggle" data-toggle="buttons">
-                    <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" onclick="handleCheckboxClick(${i}, id)" role="switch" id="${ReportsCoinsBackup[i].id}">
-                    </div>
-                    </div>
-                    </div>
-                    </div>`
-            content += card; 
-                }
+        let ul = "";
+        for (let i = 0; i < ReportsCoins.length; i++) {
+            ul += `<div class="listImgCoinContainer">
+                <li><p class="pName"><img class="listImgCoin" src="${(coins[i].image) ? coins[i].image : "https://www.shutterstock.com/image-vector/gold-coin-dollar-sign-eps8-600w-225394369.jpg"}" alt="No image" class="ui-li-icon ui-corner-none">&nbsp;&nbsp;&nbsp;${ReportsCoins[i].symbol}</p></li>
+                </div>`
+        }
+        content = `<div class='selectCardContainer'>
+        <ul data-role="listview" data-inset="true">
+            ${ul}
+        </ul>
+        </div>`;
             $(".cardsContainer").html(content);
     }
 

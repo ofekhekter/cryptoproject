@@ -67,9 +67,9 @@ button{
 }
 
 .cardContainer{
+    display: flex;
     min-width: 270px;
     min-height: 400px;
-    display: flex;
     margin-top: 2%;
     flex-direction: column;
     justify-content: center;
@@ -88,11 +88,16 @@ button{
 .popUpcontent{
     display: flex;
     flex-direction: column;
-    justify-content: start;
+    gap: 10px;
+    width: 500px;
     background-color: #000000;
     border-radius: 20px;
     border: 1px solid #ffffff;
-  
+}
+
+.popUpcontentContainer{
+    display: flex;
+    justify-content: center;
 }
 
 .popUpcontent:hover{
@@ -199,9 +204,7 @@ button:hover{
 
 #popupHeader{
     color: #ffffff;
-    background-color: rgb(76, 203, 237);
     border-radius: 10px;
-    width: 500px;
 }
 
 .popupHeaderDiv{
@@ -213,6 +216,18 @@ h5{
     color: #ffffff;
 }
 
+.listImgCoin{
+    width: 50px;
+    height: 50px;
+}
+
+.pName{
+    color: #ffffff;
+}
+
+.listImgCoinContainer{
+    justify-content: center;
+}
 
 @font-face {
     font-family: aclonica;
