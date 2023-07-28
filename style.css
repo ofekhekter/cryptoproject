@@ -93,6 +93,7 @@ button{
     background-color: #000000;
     border-radius: 20px;
     border: 1px solid #ffffff;
+    height: 800px;
 }
 
 .popUpcontentContainer{
@@ -227,7 +228,16 @@ h5{
 
 .listImgCoinContainer{
     justify-content: center;
+    margin-right: 32px;
+    margin-top: 30px;
+    border: 3px solid black;
 }
+
+.listImgCoinContainer:hover{
+    border: 3px solid rgb(76, 203, 237);
+    cursor: pointer;
+}
+
 
 @font-face {
     font-family: aclonica;

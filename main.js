@@ -1,5 +1,6 @@
 let ReportsCoins = [];
 let imageCoins = [];
+let lastSelectedCoin;
 
     $.getJSON('./api-images.json', (data) => {
         for(const field of data){
@@ -18,6 +19,14 @@ let imageCoins = [];
     $(document).ready( () => {
         $(".Reports").on("click", () => {
             $("#mainContainer").hide();
+        })
+    });
+
+    $(document).ready( () => {
+        $("#cancelBtn").on("click", () => {
+            hidePopup();
+            const coins = getAllCoinsFromLocal();
+            displayCoins(coins);
         })
     });
 
@@ -68,6 +77,7 @@ let imageCoins = [];
     }
  
     const handleCheckboxClick = (i, id) => {
+        lastSelectedCoin = id;
         const statusInput = checkSwitchStatus(id);
         if(statusInput) {
             const coins = getAllCoinsFromLocal();
@@ -91,9 +101,7 @@ let imageCoins = [];
     
     const setSwitchStatusOff = () => {
         setTimeout(() => {
-            const ReportsCoins = getReportsCoinsFromLocal()
             const coins = getAllCoinsFromLocal()
-            $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
             for(const coin of coins){
                 const id = coin.id;
                 $(`#${id}`).prop("checked", false);
@@ -111,20 +119,14 @@ let imageCoins = [];
 
     const setOneCoinToLocal = (coin) => {
         ReportsCoins = getReportsCoinsFromLocal();
-        let coinExsist = false;
-        for (const report of ReportsCoins) {
-            if(report.name === coin.name) {
-                coinExsist = true;
-            }
+        if(ReportsCoins.length < 5) {
+        for(const report of ReportsCoins){
+            report.image = coin.image;
         }
-      
-        if(!coinExsist) {
             ReportsCoins.push(coin);
             localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
-        }
-        $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
-        if(ReportsCoins.length > 5){
-            // alert("You have max reports Attempts! Please Choose 5 Reports")
+            $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
+        }else if(ReportsCoins.length === 5){
             displayPopUpSelectCard()
             setSwitchStatusOff()
             activatePopup()
@@ -135,36 +137,40 @@ let imageCoins = [];
         for (let i = 0; i < coins.length; i++) {
             removeOneCoinFromLocal(coins[i].id)
         }
-        setSwitchStatusOff()
+        setSwitchStatusOff();
+    }
+
+    const removeCoin = (i) => {
+        ReportsCoins = getReportsCoinsFromLocal();
+        removeOneCoinFromLocal(ReportsCoins[i].id);
+        const coins = getAllCoinsFromLocal();
+        const currentCoin = coins.find(coin => coin.id === lastSelectedCoin);
+        setOneCoinToLocal(currentCoin);
+        displayCoins(coins);
+        hidePopup();
     }
 
     const displayPopUpSelectCard = () => {
         const coins = getAllCoinsFromLocal();
-        // clearAllSelectedCoins(coins)
-        for (let i = 0; i < coins.length; i++) {
-            for (let j = 0; j < imageCoins.length; j++) {
-                if(coins[i].name === imageCoins[j].name) {
-                    coins[i].image = imageCoins[j].image;
-                }
-            }
-        }
-
-        ReportsCoins = getReportsCoinsFromLocal();
+        ReportsCoins = getReportsCoinsFromLocal(); 
+        ReportsCoins.forEach((reportCoin) => {   
+        const matchingCoin = coins.find((coin) => { return coin.name === reportCoin.name });
+        if (matchingCoin) reportCoin.image = matchingCoin.image; 
+        });
         let content = "";
         let ul = "";
         for (let i = 0; i < ReportsCoins.length; i++) {
             ul += `<div class="listImgCoinContainer">
-                <li><p class="pName"><img class="listImgCoin" src="${(coins[i].image) ? coins[i].image : "https://www.shutterstock.com/image-vector/gold-coin-dollar-sign-eps8-600w-225394369.jpg"}" alt="No image" class="ui-li-icon ui-corner-none">&nbsp;&nbsp;&nbsp;${ReportsCoins[i].symbol}</p></li>
+                <li onclick="removeCoin(${i})"><p class="pName"><img class="listImgCoin" src="${(ReportsCoins[i].image) ? ReportsCoins[i].image : "https://www.shutterstock.com/image-vector/gold-coin-dollar-sign-eps8-600w-225394369.jpg"}" alt="No image" class="ui-li-icon ui-corner-none">&nbsp;&nbsp;&nbsp;${ReportsCoins[i].symbol}</p></li>
                 </div>`
         }
         content = `<div class='selectCardContainer'>
-        <ul data-role="listview" data-inset="true">
+        <ul class="ulDiv" data-role="listview" data-inset="true">
             ${ul}
         </ul>
         </div>`;
             $(".cardsContainer").html(content);
     }
-
 
     const setCoinsToLocal = (coins) => {
         localStorage.setItem("coins", JSON.stringify(coins));
@@ -236,6 +242,7 @@ let imageCoins = [];
 
     const activatePopup = () => {
         $('.popUpcontent').show();
+        $('html,body').scrollTop(0);
     }
 
     const hidePopup = () => {
@@ -247,7 +254,6 @@ let imageCoins = [];
     });
 
     const displayCoins = (coins) => {
-        setCoinsToLocal(coins);
         setSwitchStatusOn();
         for (let i = 0; i < coins.length; i++) {
             for (let j = 0; j < imageCoins.length; j++) {
@@ -256,9 +262,10 @@ let imageCoins = [];
                 }
             }
         }
-        let content = "";   
+        setCoinsToLocal(coins);
+        let content = "";
         for (let i = 0; i < coins.length; i++) {
-            const card = `  <div class='cardContainer'>
+            const card = ` <div class='cardContainer'>
             <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" onclick="handleCheckboxClick(${i}, id)" role="switch" id="${coins[i].id}">
             </div>
