@@ -1,4 +1,3 @@
-let ReportsCoins = [];
 let imageCoins = [];
 let lastSelectedCoin;
 
@@ -19,6 +18,8 @@ let lastSelectedCoin;
     $(document).ready( () => {
         $(".Reports").on("click", () => {
             $("#mainContainer").hide();
+            displayReportsCoins();
+            $("#mainContainer").show();
         })
     });
 
@@ -110,7 +111,7 @@ let lastSelectedCoin;
     }
 
     const removeOneCoinFromLocal = (id) => {
-        ReportsCoins = getReportsCoinsFromLocal();
+        const ReportsCoins = getReportsCoinsFromLocal();
         const index = ReportsCoins.findIndex(elem => elem.id === id)
         ReportsCoins.splice(index, 1);
         localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
@@ -118,10 +119,10 @@ let lastSelectedCoin;
     }
 
     const setOneCoinToLocal = (coin) => {
-        ReportsCoins = getReportsCoinsFromLocal();
-        if(ReportsCoins.length < 5) {
+        const ReportsCoins = getReportsCoinsFromLocal();
+        if(ReportsCoins.length < 5) {  
         for(const report of ReportsCoins){
-            report.image = coin.image;
+            if(!report.image) report.image = coin.image;
         }
             ReportsCoins.push(coin);
             localStorage.setItem("ReportsCoins", JSON.stringify(ReportsCoins));
@@ -141,7 +142,7 @@ let lastSelectedCoin;
     }
 
     const removeCoin = (i) => {
-        ReportsCoins = getReportsCoinsFromLocal();
+        const ReportsCoins = getReportsCoinsFromLocal();
         removeOneCoinFromLocal(ReportsCoins[i].id);
         const coins = getAllCoinsFromLocal();
         const currentCoin = coins.find(coin => coin.id === lastSelectedCoin);
@@ -152,7 +153,7 @@ let lastSelectedCoin;
 
     const displayPopUpSelectCard = () => {
         const coins = getAllCoinsFromLocal();
-        ReportsCoins = getReportsCoinsFromLocal(); 
+        const ReportsCoins = getReportsCoinsFromLocal(); 
         ReportsCoins.forEach((reportCoin) => {   
         const matchingCoin = coins.find((coin) => { return coin.name === reportCoin.name });
         if (matchingCoin) reportCoin.image = matchingCoin.image; 
@@ -171,7 +172,6 @@ let lastSelectedCoin;
         </div>`;
             $(".cardsContainer").html(content);
     }
-
     const setCoinsToLocal = (coins) => {
         localStorage.setItem("coins", JSON.stringify(coins));
     }
@@ -213,18 +213,20 @@ let lastSelectedCoin;
         const value = $('#searchInput').val();
                 for (let i = 0; i < coins.length; i++) {
                     if((coins[i].symbol.toLowerCase() === value.toLowerCase()) || (coins[i].name.toLowerCase() === value.toLowerCase())){
-                        displaySelectedCoin(coins[i], i)
+                        $('#alertBox').attr("hidden", true);
+                        displaySelectedCoin(coins[i], i);
                         return;
                     }
                 }
                 for (let i = 0; i < coins.length; i++) {
                     if((coins[i].symbol.toLowerCase() !== value.toLowerCase()) || (coins[i].name.toLowerCase() !== value.toLowerCase())){
                         if(value === "") {
-                            displayCoins(coins)
+                            $('#alertBox').attr("hidden", true);
+                            displayCoins(coins);
                             return;
                         }
-                        
-                        alert(`${value} coin not exsist!`);
+                        $('#searchInput').val("");
+                        $('#alertBox').removeAttr('hidden');
                         return;
                     }
                 }
@@ -252,6 +254,43 @@ let lastSelectedCoin;
     $(document).ready(() => {
         $('#activatePopupBtn').on('click', activatePopup);
     });
+
+    const displayReportsCoins = () => {
+        const ReportsCoins = getReportsCoinsFromLocal();
+        let content = "";
+        for (let i = 0; i < ReportsCoins.length; i++) {
+            const card = ` <div class='cardContainer'>
+            <div class='header'>
+            <div class='imgContainer'>
+            <h5>${ReportsCoins[i].symbol}</h5>
+            <h5>${ReportsCoins[i].name}</h5>
+            <img class='imgCoin' src=${(ReportsCoins[i].image) ? ReportsCoins[i].image : "https://www.shutterstock.com/image-vector/gold-coin-dollar-sign-eps8-600w-225394369.jpg"} alt="No image" />
+            </div>
+            </div>
+            <div class='content'>
+            <div>
+            <p class='title'>Last Price: <span class="value">${(ReportsCoins[i].quotes.USD.price).toFixed(2)}$</span></p>
+            </div>
+            <div>
+            <p class='title'>Change 24h: <span class="value">${(ReportsCoins[i].quotes.USD.volume_24h_change_24h).toFixed(2)}%</span></p>
+            </div>
+            <div>
+            <p class='title'>Market Cap: <span class="value">${fnum(ReportsCoins[i].quotes.USD.market_cap)}</span></p>
+            </div>
+            <div hidden id="${ReportsCoins[i].symbol}">
+            <p class='title'>USD: <span class="value">${(ReportsCoins[i].quotes.USD.price).toFixed(2)}$</span></p>
+            <p class='title'>ILS: <span class="value">${((ReportsCoins[i].quotes.USD.price)/3.617).toFixed(2)}&#8362;</span></p>
+            <p class='title'>EUR: <span class="value">${((ReportsCoins[i].quotes.USD.price)/0.90).toFixed(2)}&euro;</span></p>
+            </div>
+            <div id="btnContainer">
+            <button type="button" id=${i} onclick="dropDown(${ReportsCoins[i].symbol}, ${i})" class="btn btn-outline-info">More Info</button>
+            </div>
+            </div>
+            </div>  `;
+            content += card;
+            $("#mainContainer").html(content);
+        }
+    }
 
     const displayCoins = (coins) => {
         setSwitchStatusOn();
@@ -306,4 +345,3 @@ let lastSelectedCoin;
         success: coins => displayCoins(coins.slice(0, 100)),
         error: err => alert(err.statusText),
     });
-    
