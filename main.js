@@ -17,10 +17,18 @@ let lastSelectedCoin;
 
     $(document).ready( () => {
         $(".Reports").on("click", () => {
-            $("#mainContainer").hide();
-            displayReportsCoins();
-            $("#mainContainer").show();
+            const ReportsCoins = getReportsCoinsFromLocal();
+            if(ReportsCoins.length !== 0){
+                $("#mainContainer").hide();
+                displayReportsCoins();
+                $("#mainContainer").show();
+            }else{
+                $("#mainContainer").hide();
+                $('#alertBox').html(`Empty reports`);
+                $('#alertBox').removeAttr('hidden');
+            }
         })
+       
     });
 
     $(document).ready( () => {
@@ -48,6 +56,7 @@ let lastSelectedCoin;
                 success: coins => displayCoins(coins.slice(0, 100)),
                 error: err => alert(err.statusText),
                 });
+            $('#alertBox').attr("hidden", true);
             $("#mainContainer").show();
             hidePopup()
         })
@@ -91,7 +100,7 @@ let lastSelectedCoin;
        
     const setSwitchStatusOn = () => {
         setTimeout(() => {
-            const ReportsCoins = getReportsCoinsFromLocal()
+            const ReportsCoins = getReportsCoinsFromLocal();
             $("#reports").html(`Reports (${ReportsCoins.length}/5)`);
             for(const coin of ReportsCoins){
                 const id = coin.id;
@@ -226,6 +235,7 @@ let lastSelectedCoin;
                             return;
                         }
                         $('#searchInput').val("");
+                        $('#alertBox').html(`${value} coin is not exist`);
                         $('#alertBox').removeAttr('hidden');
                         return;
                     }
