@@ -1,4 +1,6 @@
-let imageCoins = [];
+const imageCoins = [];
+const pricesLocalArray = [];
+const coinsPrices = [];
 let lastSelectedCoin;
 
     $.getJSON('./api-images.json', (data) => {
@@ -73,6 +75,15 @@ let lastSelectedCoin;
 
     const getReportsCoinsFromLocal = () => {
         const storageArray = localStorage.getItem("ReportsCoins");
+        if (storageArray) {
+            return JSON.parse(storageArray);
+        } else {
+            return [];
+        }
+    }
+
+    const getPricesCoinsFromLocal = () => {
+        const storageArray = localStorage.getItem("coinsPrices");
         if (storageArray) {
             return JSON.parse(storageArray);
         } else {
@@ -206,8 +217,8 @@ let lastSelectedCoin;
                         </div>
                         <div hidden id="${coin.symbol}">
                         <p class='title'>USD: <span class="value">${(coin.quotes.USD.price).toFixed(2)}$</span></p>
-                        <p class='title'>ILS: <span class="value">${((coin.quotes.USD.price)/3.617).toFixed(2)}&#8362;</span></p>
-                        <p class='title'>EUR: <span class="value">${((coin.quotes.USD.price)/0.90).toFixed(2)}&euro;</span></p>
+                        <p class='title'>ILS: <span class="value">${((coin.quotes.USD.price)*3.617).toFixed(2)}&#8362;</span></p>
+                        <p class='title'>EUR: <span class="value">${((coin.quotes.USD.price)*0.90).toFixed(2)}&euro;</span></p>
                         </div>
                         <div id="btnContainer">
                         <button type="button" id=${i} onclick="dropDown(${coin.symbol}, ${i})" class="btn btn-outline-info">More Info</button>
@@ -242,10 +253,47 @@ let lastSelectedCoin;
                 }
     }
 
+    const removePricesFromLocalStorage = () => {
+        const coinsPrJson = localStorage.getItem("coinsPrices");
+        const coinsPr = JSON.parse(coinsPrJson);
+        coinsPr.splice(0, 1);
+        const jsonPrices = JSON.stringify(coinsPr);
+        localStorage.setItem("coinsPrices", jsonPrices);
+    }
+
+    const displayPriceCoin = (coin, i) => {
+        const usdCoin = coin.quotes.USD.price.toFixed(2);
+        const ilsCoin = ((coin.quotes.USD.price)*3.617).toFixed(2);
+        const eurCoin = ((coin.quotes.USD.price)*0.91).toFixed(2);
+        const priceCoin = {
+            symbol: coin.symbol,
+            usd: usdCoin,
+            ils: ilsCoin,
+            eur: eurCoin
+        };
+        const coinsPrices = getPricesCoinsFromLocal();
+        coinsPrices.push(priceCoin);
+        const coinPriceJson = JSON.stringify(coinsPrices);
+        localStorage.setItem("coinsPrices", coinPriceJson);
+        setTimeout(() => {
+            removePricesFromLocalStorage();
+        }, 120000);
+        
+            $(`#${i}USD`).html(`${coin.quotes.USD.price.toFixed(2)}$`);
+            $(`#${i}ILS`).html(`${((coin.quotes.USD.price)*3.617).toFixed(2)}&#8362;`)
+            $(`#${i}EUR`).html(`${((coin.quotes.USD.price)*0.90).toFixed(2)}&euro;`)
+        }
+
     const dropDown = (coins, index) => {
     if ($(`#${coins.id}`).is(":hidden")) {
         $(`#${coins.id}`).removeAttr('hidden');
         $(`#${index}`).html("Less Info");
+        $.ajax({
+            url: "https://api.coinpaprika.com/v1/tickers",
+            success: coins => displayPriceCoin(coins[index], index),
+            error: err => alert(err.statusText)
+        });
+       
     }else{
         $(`#${coins.id}`).attr("hidden", true);
         $(`#${index}`).html("More Info");
@@ -289,8 +337,8 @@ let lastSelectedCoin;
             </div>
             <div hidden id="${ReportsCoins[i].symbol}">
             <p class='title'>USD: <span class="value">${(ReportsCoins[i].quotes.USD.price).toFixed(2)}$</span></p>
-            <p class='title'>ILS: <span class="value">${((ReportsCoins[i].quotes.USD.price)/3.617).toFixed(2)}&#8362;</span></p>
-            <p class='title'>EUR: <span class="value">${((ReportsCoins[i].quotes.USD.price)/0.90).toFixed(2)}&euro;</span></p>
+            <p class='title'>ILS: <span class="value">${((ReportsCoins[i].quotes.USD.price)*3.617).toFixed(2)}&#8362;</span></p>
+            <p class='title'>EUR: <span class="value">${((ReportsCoins[i].quotes.USD.price)*0.91).toFixed(2)}&euro;</span></p>
             </div>
             <div id="btnContainer">
             <button type="button" id=${i} onclick="dropDown(${ReportsCoins[i].symbol}, ${i})" class="btn btn-outline-info">More Info</button>
@@ -336,9 +384,9 @@ let lastSelectedCoin;
             <p class='title'>Market Cap: <span class="value">${fnum(coins[i].quotes.USD.market_cap)}</span></p>
             </div>
             <div hidden id="${coins[i].symbol}">
-            <p class='title'>USD: <span class="value">${(coins[i].quotes.USD.price).toFixed(2)}$</span></p>
-            <p class='title'>ILS: <span class="value">${((coins[i].quotes.USD.price)/3.617).toFixed(2)}&#8362;</span></p>
-            <p class='title'>EUR: <span class="value">${((coins[i].quotes.USD.price)/0.90).toFixed(2)}&euro;</span></p>
+            <p class='title'>USD: <span id="${i}USD" class="value"></span></p>
+            <p class='title'>ILS: <span id="${i}ILS" class="value"></span></p>
+            <p class='title'>EUR: <span id="${i}EUR" class="value"></span></p>
             </div>
             <div id="btnContainer">
             <button type="button" id=${i} onclick="dropDown(${coins[i].symbol}, ${i})" class="btn btn-outline-info">More Info</button>
